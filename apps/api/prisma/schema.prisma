@@ -1,0 +1,193 @@
+// ============================================================
+// commerce-ai-assistant — Prisma schema
+//
+// NOTE: pgvector is intentionally NOT modeled here.
+// The `product_embeddings` table and the `vector` extension are
+// managed by a dedicated raw-SQL migration and accessed only via
+// parameterized SQL from the AI service's vector store layer.
+// See docs/decisions/ADR-003 and docs/database-design.md.
+// ============================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  CUSTOMER
+  ADMIN
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  SHIPPED
+  DELIVERED
+  CANCELLED
+}
+
+model User {
+  id           String   @id @default(uuid())
+  email        String   @unique
+  passwordHash String   @map("password_hash")
+  name         String
+  role         Role     @default(CUSTOMER)
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  cart   Cart?
+  orders Order[]
+
+  @@map("users")
+}
+
+model Category {
+  id        String    @id @default(uuid())
+  slug      String    @unique
+  name      String
+  createdAt DateTime  @default(now()) @map("created_at")
+  updatedAt DateTime  @updatedAt @map("updated_at")
+
+  products Product[]
+
+  @@map("categories")
+}
+
+model Product {
+  id             String    @id @default(uuid())
+  sku            String    @unique
+  name           String
+  description    String
+  categoryId     String    @map("category_id")
+  brand          String
+  priceCents     Int       @map("price_cents")
+  currency       String    @default("BRL")
+  specifications Json?
+  version        Int       @default(1)
+  active         Boolean   @default(true)
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  category   Category          @relation(fields: [categoryId], references: [id])
+  inventory  Inventory?
+  cartItems  CartItem[]
+  orderItems OrderItem[]
+  documents  ProductDocument[]
+
+  @@index([categoryId])
+  @@index([brand])
+  @@index([name])
+  @@map("products")
+}
+
+model Inventory {
+  id        String   @id @default(uuid())
+  productId String   @unique @map("product_id")
+  quantity  Int
+  reserved  Int      @default(0)
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@index([quantity])
+  @@map("inventory")
+}
+
+model Cart {
+  id        String     @id @default(uuid())
+  userId    String     @unique @map("user_id")
+  createdAt DateTime   @default(now()) @map("created_at")
+  updatedAt DateTime   @updatedAt @map("updated_at")
+
+  user  User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  items CartItem[]
+
+  @@map("carts")
+}
+
+model CartItem {
+  id        String   @id @default(uuid())
+  cartId    String   @map("cart_id")
+  productId String   @map("product_id")
+  quantity  Int
+  createdAt DateTime @default(now()) @map("created_at")
+
+  cart    Cart    @relation(fields: [cartId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id])
+
+  @@unique([cartId, productId])
+  @@map("cart_items")
+}
+
+model Order {
+  id            String      @id @default(uuid())
+  number        String      @unique
+  userId        String      @map("user_id")
+  status        OrderStatus @default(PENDING)
+  totalCents    Int         @map("total_cents")
+  currency      String      @default("BRL")
+  shippingCents Int         @default(0) @map("shipping_cents")
+  createdAt     DateTime    @default(now()) @map("created_at")
+  updatedAt     DateTime    @updatedAt @map("updated_at")
+
+  user  User        @relation(fields: [userId], references: [id])
+  items OrderItem[]
+
+  @@index([userId])
+  @@index([status])
+  @@map("orders")
+}
+
+model OrderItem {
+  id            String @id @default(uuid())
+  orderId       String @map("order_id")
+  productId     String @map("product_id")
+  productName   String @map("product_name")
+  unitPriceCents Int   @map("unit_price_cents")
+  quantity      Int
+
+  order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id])
+
+  @@index([orderId])
+  @@map("order_items")
+}
+
+// Documents are the RAG source of truth per product version.
+// Chunks derive from documents; embeddings derive from chunks.
+model ProductDocument {
+  id        String   @id @default(uuid())
+  productId String   @map("product_id")
+  docType   String   @default("description") @map("doc_type")
+  version   Int      @default(1)
+  content   String   @db.Text
+  metadata  Json?
+  createdAt DateTime @default(now()) @map("created_at")
+
+  product Product          @relation(fields: [productId], references: [id], onDelete: Cascade)
+  chunks  ProductChunk[]
+
+  @@unique([productId, docType, version])
+  @@index([productId])
+  @@map("product_documents")
+}
+
+model ProductChunk {
+  id         String   @id @default(uuid())
+  documentId String   @map("document_id")
+  chunkIndex Int      @map("chunk_index")
+  content    String   @db.Text
+  tokenCount Int?     @map("token_count")
+  metadata   Json?
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  document ProductDocument @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@unique([documentId, chunkIndex])
+  @@index([documentId])
+  @@map("product_chunks")
+}
