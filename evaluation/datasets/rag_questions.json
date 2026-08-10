@@ -1,0 +1,82 @@
+[
+  {
+    "id": "rag-001",
+    "question": "Qual notebook com 16 GB de RAM é melhor para rodar Docker até R$ 5.000?",
+    "expected_category": "Notebooks",
+    "expected_max_price": 500000,
+    "expected_features": ["16 GB", "512 GB"],
+    "expected_products": []
+  },
+  {
+    "id": "rag-002",
+    "question": "Preciso de um notebook com 512 GB de SSD e 16 GB de RAM até R$ 5.000 para desenvolvimento",
+    "expected_category": "Notebooks",
+    "expected_max_price": 500000,
+    "expected_features": ["16 GB", "512 GB"],
+    "expected_products": []
+  },
+  {
+    "id": "rag-003",
+    "question": "Qual smartphone tem câmera de 50 MP e bateria de 5000 mAh até R$ 3.000?",
+    "expected_category": "Smartphones",
+    "expected_max_price": 300000,
+    "expected_features": ["50 MP", "5000 mAh"],
+    "expected_products": []
+  },
+  {
+    "id": "rag-004",
+    "question": "O Dell Latitude 5440 suporta 32 GB de RAM?",
+    "expected_category": null,
+    "expected_max_price": null,
+    "expected_features": ["32 GB"],
+    "expected_products": ["Dell Latitude 5440"]
+  },
+  {
+    "id": "rag-005",
+    "question": "Compare o ASUS Vivobook 16X com o Lenovo IdeaPad 3 para desenvolvimento de software",
+    "expected_category": null,
+    "expected_max_price": null,
+    "expected_features": [],
+    "expected_products": ["ASUS Vivobook 16X", "Lenovo IdeaPad 3"]
+  },
+  {
+    "id": "rag-006",
+    "question": "O MacBook Air M3 é bom para desenvolvimento mobile?",
+    "expected_category": null,
+    "expected_max_price": null,
+    "expected_features": ["M3", "16 GB"],
+    "expected_products": ["MacBook Air"]
+  },
+  {
+    "id": "rag-007",
+    "question": "Qual a RAM e o armazenamento do Samsung Galaxy Book4?",
+    "expected_category": null,
+    "expected_max_price": null,
+    "expected_features": ["16 GB", "512 GB"],
+    "expected_products": ["Galaxy Book4"]
+  },
+  {
+    "id": "rag-008",
+    "question": "Monitor 4K com USB-C até R$ 3.000 para desenvolvedor",
+    "expected_category": "Monitores",
+    "expected_max_price": 300000,
+    "expected_features": ["USB-C"],
+    "expected_products": []
+  },
+  {
+    "id": "rag-009",
+    "question": "Qual notebook gamer tem RTX 4060 e tela 144 Hz?",
+    "expected_category": "Notebooks",
+    "expected_max_price": null,
+    "expected_features": ["RTX 4060", "144 Hz"],
+    "expected_products": []
+  },
+  {
+    "id": "rag-010",
+    "question": "Existe notebook leve com até 1.4 kg para viagem?",
+    "expected_category": "Notebooks",
+    "expected_max_price": null,
+    "expected_features": ["1.4 kg"],
+    "expected_products": []
+  }
+]

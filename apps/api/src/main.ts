@@ -52,7 +52,7 @@ async function bootstrap(): Promise<void> {
 
   const port = Number(process.env.API_PORT ?? 3000);
   await app.listen(port);
-  Logger.prototype.log(`API listening on http://localhost:${port} — Swagger at /docs`);
+  app.get(Logger).log(`API listening on http://localhost:${port} — Swagger at /docs`);
 }
 
 void bootstrap();
