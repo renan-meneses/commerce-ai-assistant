@@ -34,7 +34,16 @@ class ToolResult:
 
 
 class ToolAuthContext(BaseModel):
+    """Auth context handed to a tool execution.
+
+    `user_id` identifies the caller (used for ownership checks inside the
+    AI service). `user_token` is the short-lived scoped service token that
+    the API minted for this request; tools forward it to the commerce API
+    so the backend can enforce authorization itself.
+    """
+
     user_id: str | None = None
+    user_token: str | None = None
     roles: list[str] = field(default_factory=list)
 
 

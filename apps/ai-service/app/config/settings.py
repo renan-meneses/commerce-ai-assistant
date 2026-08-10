@@ -58,6 +58,10 @@ class Settings(BaseSettings):
     cache_price_ttl: int = 30  # prices: short TTL
     cache_inventory_ttl: int = 0  # inventory: no cache (live truth)
 
+    # --- security ---
+    rate_limit_ttl_seconds: int = 60
+    rate_limit_max_requests: int = 30  # agent path is LLM-bound; stricter than API
+
     # --- observability ---
     langfuse_enabled: bool = False
     langfuse_public_key: str = ""

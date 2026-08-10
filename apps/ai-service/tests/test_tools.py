@@ -81,3 +81,58 @@ def test_tool_auth_context():
     ctx = ToolAuthContext(user_id="u1")
     assert ctx.user_id == "u1"
     assert ctx.roles == []
+    ctx = ToolAuthContext(user_id="u1", user_token="tok")
+    assert ctx.user_token == "tok"
+
+
+@pytest.mark.asyncio
+@respx.mock
+async def test_private_tools_forward_service_token():
+    settings = Settings(api_url="http://commerce.test")
+    client = CommerceClient(settings)
+    cache = CacheService(settings)
+    scanner = InjectionScanner()
+    registry = build_tool_registry(client, cache, settings, scanner)
+
+    respx.get("http://commerce.test/api/v1/orders").mock(
+        return_value=httpx.Response(200, json={"orders": [{"id": "o1"}]})
+    )
+    respx.get("http://commerce.test/api/v1/orders/by-number/ORD-1").mock(
+        return_value=httpx.Response(200, json={"id": "o1", "status": "SHIPPED"})
+    )
+
+    try:
+        result = await registry["get_user_orders"].execute(
+            {"limit": 5}, ToolAuthContext(user_id="u1", user_token="scoped-token")
+        )
+        assert result.ok and result.data == [{"id": "o1"}]
+
+        result = await registry["get_order_status"].execute(
+            {"order_number": "ORD-1"}, ToolAuthContext(user_id="u1", user_token="scoped-token")
+        )
+        assert result.ok and result.data["status"] == "SHIPPED"
+
+        auth_header = [
+            c.request.headers.get("authorization")
+            for c in respx.calls
+            if "orders" in str(c.request.url)
+        ]
+        assert auth_header and all(h == "Bearer scoped-token" for h in auth_header)
+    finally:
+        await client.close()
+
+
+@pytest.mark.asyncio
+async def test_private_tools_reject_missing_token():
+    settings = Settings(api_url="http://commerce.test")
+    client = CommerceClient(settings)
+    cache = CacheService(settings)
+    scanner = InjectionScanner()
+    registry = build_tool_registry(client, cache, settings, scanner)
+    try:
+        result = await registry["get_user_orders"].execute(
+            {"limit": 5}, ToolAuthContext(user_id="u1", user_token=None)
+        )
+        assert not result.ok and "Authentication required" in result.error
+    finally:
+        await client.close()

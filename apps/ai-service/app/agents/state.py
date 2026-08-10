@@ -13,6 +13,7 @@ class AgentState(TypedDict, total=False):
 
     # context
     user_id: str | None
+    user_token: str | None  # scoped service token minted by the API
     correlation_id: str | None
 
     # analysis

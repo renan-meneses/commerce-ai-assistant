@@ -217,7 +217,9 @@ async def execute_tool(state: AgentState, deps: GraphDeps) -> dict[str, Any]:
             "pending_tools": pending,
         }
 
-    allowed, reason = deps.security.evaluate_tool_call(tool_name, state.get("user_id"))
+    allowed, reason = deps.security.evaluate_tool_call(
+        tool_name, state.get("user_token") or state.get("user_id")
+    )
     if not allowed:
         return {
             "tool_results": [ToolResult(ok=False, error=f"permission denied: {reason}").to_dict()],
@@ -226,7 +228,13 @@ async def execute_tool(state: AgentState, deps: GraphDeps) -> dict[str, Any]:
 
     arguments = tool_arguments_for(state, tool_name)
     try:
-        result = await tool.execute(arguments, ToolAuthContext(user_id=state.get("user_id")))
+        result = await tool.execute(
+            arguments,
+            ToolAuthContext(
+                user_id=state.get("user_id"),
+                user_token=state.get("user_token"),
+            ),
+        )
     except Exception as exc:  # noqa: BLE001 - always return a structured, safe result
         logger.exception("tool %s failed", tool_name)
         result = ToolResult(ok=False, error=str(exc)[:300])

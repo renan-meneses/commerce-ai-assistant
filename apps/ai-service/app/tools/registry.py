@@ -204,11 +204,9 @@ class GetOrderStatusTool:
 
     async def execute(self, arguments: dict, auth: ToolAuthContext) -> ToolResult:
         args = OrderStatusInput.model_validate(arguments)
-        if not auth.user_id:
+        if not auth.user_token:
             return ToolResult(ok=False, error="Authentication required to check orders.")
-        # In production the AI service receives a scoped service token;
-        # the backend still enforces ownership on the caller's user id.
-        status = await self.client.get_order_status(args.order_number, auth.user_id)
+        status = await self.client.get_order_status(args.order_number, auth.user_token)
         return ToolResult(ok=True, data=status)
 
 
@@ -227,9 +225,9 @@ class GetUserOrdersTool:
 
     async def execute(self, arguments: dict, auth: ToolAuthContext) -> ToolResult:
         args = UserOrdersInput.model_validate(arguments)
-        if not auth.user_id:
+        if not auth.user_token:
             return ToolResult(ok=False, error="Authentication required.")
-        orders = await self.client.list_user_orders(auth.user_id)
+        orders = await self.client.list_user_orders(auth.user_token)
         return ToolResult(ok=True, data=orders.get("orders", orders)[: args.limit])
 
 

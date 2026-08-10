@@ -11,6 +11,7 @@ from pydantic import BaseModel, Field
 
 from app.agents.state import AgentState
 from app.api.dependencies import AgentContainer, get_container
+from app.security.rate_limit import enforce_rate_limit
 
 logger = logging.getLogger(__name__)
 
@@ -42,7 +43,9 @@ class ChatResponse(BaseModel):
 async def chat(
     payload: ChatRequest,
     container: Annotated[AgentContainer, Depends(get_container)],
+    _: Annotated[None, Depends(enforce_rate_limit)] = None,
     x_request_id: Annotated[str | None, Header()] = None,
+    x_service_token: Annotated[str | None, Header()] = None,
 ) -> ChatResponse:
     started = time.monotonic()
     correlation_id = payload.correlation_id or x_request_id or ""
@@ -55,6 +58,7 @@ async def chat(
         "messages": [m.model_dump() for m in payload.messages],
         "query": query,
         "user_id": payload.user_id,
+        "user_token": x_service_token,
         "correlation_id": correlation_id,
         "extracted_requirements": {},
         "retrieved_documents": [],
