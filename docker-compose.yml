@@ -72,7 +72,7 @@ services:
       rabbitmq:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:3000/health"]
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/api/v1/health"]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -89,6 +89,7 @@ services:
       REDIS_URL: redis://redis:6379/0
       API_URL: http://api:3000
       JWT_SECRET: ${JWT_SECRET:-dev-secret-change-me}
+      EMBEDDINGS_USE_HASH: ${EMBEDDINGS_USE_HASH:-true}
     ports:
       - "8000:8000"
     depends_on:
@@ -114,6 +115,7 @@ services:
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-commerce}:${POSTGRES_PASSWORD:-commerce_dev_password}@postgres:5432/${POSTGRES_DB:-commerce}
       REDIS_URL: redis://redis:6379/0
+      EMBEDDINGS_USE_HASH: ${EMBEDDINGS_USE_HASH:-true}
     depends_on:
       postgres:
         condition: service_healthy
@@ -182,7 +184,7 @@ services:
       - prometheus
 
   langfuse:
-    image: langfuse/langfuse:3
+    image: langfuse/langfuse:2
     container_name: commerce-langfuse
     environment:
       DATABASE_URL: postgresql://${POSTGRES_USER:-commerce}:${POSTGRES_PASSWORD:-commerce_dev_password}@postgres:5432/langfuse

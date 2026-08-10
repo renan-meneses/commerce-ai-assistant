@@ -1,4 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
 import {
   ArrayMaxSize,
   IsArray,
@@ -23,6 +24,7 @@ export class ChatRequestDto {
   @ApiProperty({ type: [ChatMessageDto], description: 'Conversation history' })
   @IsArray()
   @ArrayMaxSize(20)
+  @Type(() => ChatMessageDto)
   messages!: ChatMessageDto[];
 
   @ApiPropertyOptional({
