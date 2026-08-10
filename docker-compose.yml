@@ -143,6 +143,9 @@ services:
     image: otel/opentelemetry-collector-contrib:0.108.0
     container_name: commerce-otel
     command: ["--config=/etc/otel/config.yaml"]
+    environment:
+      # base64("public:<public-key>:<secret-key>") for Langfuse OTLP auth
+      OTEL_LANGFUSE_AUTH: ${OTEL_LANGFUSE_AUTH:-cHVibGljOnB1YmxpYzpzZWNyZXQ=}
     volumes:
       - ./infrastructure/monitoring/otel-collector.yaml:/etc/otel/config.yaml:ro
     ports:
@@ -170,6 +173,7 @@ services:
       GF_SECURITY_ADMIN_PASSWORD: admin
     volumes:
       - ./infrastructure/monitoring/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./infrastructure/monitoring/grafana/dashboards:/var/lib/grafana/dashboards:ro
       - grafana_data:/var/lib/grafana
     ports:
       - "3001:3000"

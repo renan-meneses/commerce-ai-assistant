@@ -1,0 +1,52 @@
+rules:
+  - id: no-hardcoded-secrets
+    languages: [python, typescript, javascript]
+    severity: ERROR
+    message: Hardcoded secret detected. Load secrets from environment variables only.
+    patterns:
+      - pattern-regex: (sk-[A-Za-z0-9]{20,}|-----BEGIN (RSA|EC|OPENSSH) PRIVATE KEY-----)
+    paths:
+      exclude:
+        - .github/**
+        - "*.md"
+        - infrastructure/**
+        - evaluation/**
+
+  - id: no-sql-string-concat
+    languages: [python]
+    severity: WARNING
+    message: SQL built by string concatenation — use parameterized queries.
+    patterns:
+      - pattern: f"...{...}..." + "..."
+    paths:
+      include:
+        - apps/ai-service/**
+
+  - id: python-assert-in-debug
+    languages: [python]
+    severity: WARNING
+    message: assert statements are stripped under python -O.
+    patterns:
+      - pattern: assert $X
+
+  - id: no-eval-exec
+    languages: [python]
+    severity: ERROR
+    message: Never use eval()/exec() on untrusted input.
+    patterns:
+      - pattern: eval(...)
+      - pattern: exec(...)
+
+  - id: no-shell-from-http
+    languages: [python]
+    severity: ERROR
+    message: Do not pipe HTTP responses into a shell.
+    patterns:
+      - pattern: subprocess.run($X, shell=True, ...)
+
+  - id: ts-any-dangerous-cast
+    languages: [typescript]
+    severity: WARNING
+    message: Avoid casting untrusted data to any.
+    patterns:
+      - pattern: JSON.parse(...) as any

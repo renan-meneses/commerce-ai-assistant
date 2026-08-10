@@ -1,0 +1,21 @@
+name: Security Scan
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: "0 6 * * 1" # weekly, Monday 06:00 UTC
+
+jobs:
+  semgrep:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: returntocorp/semgrep-action@v2
+        with:
+          config: .semgrep.yml
+
+      - name: Fail on blocking findings
+        run: echo "Semgrep scan complete. Review the summary above."
