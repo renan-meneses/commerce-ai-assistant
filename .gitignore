@@ -1,0 +1,46 @@
+# Dependencies
+node_modules/
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.venv/
+venv/
+*.pyc
+
+# Build output
+dist/
+build/
+*.egg-info/
+
+# Environment
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# Test / coverage
+coverage/
+htmlcov/
+.jest-cache/
+
+# Logs
+*.log
+logs/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# OS
+.DS_Store
+
+# Data
+*.sqlite
+pgdata/
+redis-data/
+rabbitmq-data/
+
+# Langfuse / tracing artifacts
+*.trace.json
