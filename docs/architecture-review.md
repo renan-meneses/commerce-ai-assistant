@@ -12,9 +12,14 @@ Honest self-review of `commerce-ai-assistant` as of the last commit. Written to 
 
 ## Known gaps (would block production as-is)
 
-1. **AI-service auth propagation.** `get_order_status`/`get_user_orders` pass `user_id` where a bearer token is expected. Works for the demo and is covered by behavioral tests with stubbed tools, but the real flow needs a scoped service token (service-to-service) + the API trusting it. **Highest-priority follow-up.**
+1. **~~AI-service auth propagation~~ (FIXED).** The API now mints a short-lived scoped JWT
+   (`aud=ai-service`, 5 min) and forwards it as `x-service-token`; tools forward it to the
+   commerce API as Bearer, so the backend enforces ownership on user-scoped endpoints.
+   Security gate and tools check token presence (tests cover minting + forwarding).
 2. **No model quality gate in CI.** Evaluations measure routing/retrieval/security behavior, not answer quality. A golden-answer eval with a real model (weekly, keyed) is missing.
-3. **Rate limiting asymmetry.** The API throttles per-IP; the AI service has no rate limiter of its own — a compromised web origin could spam LLM calls directly. Cost control depends on the API being the only ingress.
+3. **~~Rate limiting asymmetry~~ (FIXED).** The AI service now enforces its own Redis-backed
+   fixed-window limiter on `/api/v1/ai/chat` (30 req/60s, stricter than the API's 60, since the
+   agent path is LLM-bound), fail-open when Redis is down.
 4. **Hash embeddings are not semantic.** `EMBEDDINGS_USE_HASH=true` is for CI only; production needs OpenAI or local bge plus a reindex. Nothing in code prevents it accidentally being enabled in prod (documented, not enforced).
 5. **DLQ re-drive script is documented but not committed.** A failure loop would accumulate messages without an operational escape hatch.
 6. **Web app is a reference client.** No tests, no auth token refresh, no error UX polish. Fine as a showcase; not production-ready by itself.

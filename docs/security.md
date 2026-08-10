@@ -21,7 +21,10 @@ The assistant is a public surface. Primary threats:
 ### Permissions
 
 - **Tool registry is read-only** — `WRITE_TOOLS == set()`; no mutation tool exists to hijack.
-- **Auth-required tools** — `get_order_status`/`get_user_orders` require `user_id`; enforced in `execute_tool` regardless of model output.
+- **Auth-required tools** — `get_order_status`/`get_user_orders` require a scoped service token
+  (minted by the API, `aud=ai-service`, 5 min, forwarded as `x-service-token`); enforced in
+  `execute_tool` regardless of model output. The commerce API re-enforces ownership with the
+  token's `sub`.
 - **Intent→tool mapping is deterministic** — the LLM cannot select capabilities; it only fills bounded tool arguments.
 
 ### Output
@@ -54,4 +57,4 @@ Report issues privately to the repository maintainers; do not open public adviso
 
 - Heuristic injection scanning is not provably complete — mitigated by read-only tools and auth enforcement.
 - Hash embeddings in dev/CI are not meaningful for production semantic quality (documented; `EMBEDDINGS_USE_HASH` must be false in prod).
-- The AI service forwards `user_id` as the caller identity for order tools; a scoped service token flow is the production follow-up (see `docs/architecture-review.md`).
+- The AI service forwards a short-lived scoped service token for order tools; the token only identifies the caller (`sub`), and the commerce API enforces ownership. Token minting/forwarding covered by unit tests.
